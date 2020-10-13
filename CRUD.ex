@@ -23,7 +23,7 @@ defmodule MyApp.CRUD do
   def update(mod, id, opts) when is_integer(id) or is_binary(id),
     do: get(mod, id) |> update_response(opts)
 
-  def update(mod, key, id, opts), do: get(mod, [{key, id}]) |> update_response(opts)
+  def update(mod, key, val, opts), do: get(mod, [{key, val}]) |> update_response(opts)
 
   def delete(item) when is_struct(item) do
     try do
