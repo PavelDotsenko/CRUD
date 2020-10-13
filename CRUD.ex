@@ -1,6 +1,6 @@
-defmodule Pulsar.CRUD do
+defmodule MyApp.CRUD do
   use Ecto.Schema
-  alias Pulsar.RepoOfdb, as: Repo
+  alias MyApp.MyRepo, as: Repo
   import Ecto.Query, only: [from: 2, where: 2, where: 3]
 
   def add(mod, opts), do: Repo.insert(set_field(mod, opts)) |> response(mod)
