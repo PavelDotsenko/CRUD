@@ -6,7 +6,7 @@ defmodule CRUD.MixProject do
       app: :crud,
       version: "1.0.0",
       elixir: "~> 1.6",
-      deps: deps(),
+      deps: [{:ecto_sql, "~> 3.0"}],
       description: "A set of tools for simplified database access",
       package: package(),
       elixirc_paths: ["lib"]
@@ -14,12 +14,6 @@ defmodule CRUD.MixProject do
   end
 
   def application, do: [extra_applications: []]
-
-  defp deps do
-    [
-      {:ecto_sql, "~> 3.0"}
-    ]
-  end
 
   defp package do
     [
