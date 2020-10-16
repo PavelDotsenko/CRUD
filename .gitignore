@@ -1,3 +1,6 @@
 _build
 .elixir_ls
 deps
+lib/test
+doc
+config

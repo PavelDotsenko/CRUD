@@ -8,11 +8,14 @@ defmodule CRUD do
   use Ecto.Schema
 
   defmacro __using__(opts) do
-    quote location: :keep do
+    quote bind_quoted: [opts: opts] do
       import Ecto.Query, only: [from: 2, where: 2, where: 3, offset: 2]
+
       @cont Keyword.get(unquote(opts), :context)
 
       @behaviour unquote(__MODULE__)
+
+      def context(), do: @cont
 
       def add(mod, opts), do: @cont.insert(set_field(mod, opts)) |> response(mod)
 
@@ -117,6 +120,11 @@ defmodule CRUD do
       defp error_str(key, msg), do: "#{Atom.to_string(key) |> String.capitalize()}: #{msg}"
     end
   end
+
+  @doc """
+  Returns the current Repo
+  """
+  @callback context() :: Module.t()
 
   @doc """
   ##### Adds a new entity to the database #####
