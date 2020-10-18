@@ -7,13 +7,6 @@ A module for easy access to the database.
 # How to add to the project
 Add this to your dependencies in your mix.exs:
 ```Elixir
-def application do
-    [applications: [
-        # ... whatever else
-        :crud # <-- add this for Elixir <= 1.6
-    ]]
-end
-
 defp deps do
     [
         # ... whatever else
