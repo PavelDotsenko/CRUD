@@ -3,7 +3,7 @@ defmodule CRUD do
   A module for easy access to the database.
   """
 
-  @moduledoc since: "1.0.1"
+  @moduledoc since: "1.0.2"
 
   use Ecto.Schema
 
@@ -11,52 +11,312 @@ defmodule CRUD do
     quote bind_quoted: [opts: opts] do
       import Ecto.Query, only: [from: 2, where: 2, where: 3, offset: 2]
 
-      @cont Keyword.get(unquote(opts), :context)
+      @cont Keyword.get(opts, :context)
 
-      @behaviour unquote(__MODULE__)
+      @behaviour __MODULE__
 
+      @doc """
+      Returns the current Repo
+      """
       def context(), do: @cont
 
+      @doc """
+      Adds a new entity to the database
+      ## Takes in parameters:
+        - `mod`:  Module
+        - `opts`: Map or paramatras key: value separated by commas
+
+      ## Returns:
+        - `{:ok, struct}`
+        - `{:error, error as a string or list of errors}`
+
+      ## Examples:
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, %{key1: value1, key2: value2})`
+          `{:ok, struct}`
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, key1: value1, key2: value)`
+
+          `{:ok, struct}`
+      """
       def add(mod, opts), do: @cont.insert(set_field(mod, opts)) |> response(mod)
 
-      def get(mod, id) when is_integer(id) or is_binary(id),
-        do: @cont.get(mod, id) |> response(mod)
+      @doc """
+      Retrieves structure from DB
 
-      def get(mod, opts) when is_list(opts) or is_map(opts),
-        do: @cont.get_by(mod, opts_to_map(opts)) |> response(mod)
+      ## Takes in parameters:
+        - Using `id` records from the database
+          - `mod`:  Module
+          - `id`: Structure identifier in the database
+        - Search by a bunch of `keys: value` of a record in the database
+          - `mod`:  Module
+          - `opts`: Map or paramatras `keys: value` separated by commas
 
-      def get_all(mod),
-        do: {:ok, @cont.all(from(item in mod, select: item, order_by: item.id))}
+      ## Returns:
+        - `{:ok, struct}`
+        - `{:error, error as a string}`
 
-      def get_all(mod, opts) when is_list(opts) or is_map(opts),
-        do: {:ok, @cont.all(from(i in mod, select: i, order_by: i.id) |> filter(opts))}
+      ## Examples:
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, 1)`
 
-      def get_all(mod, limit) when is_integer(limit),
-        do: {:ok, @cont.all(from(i in mod, select: i, order_by: i.id, limit: ^limit))}
+          `{:ok, struct}`
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, id: 1)`
 
-      def get_all(mod, limit, offset) when is_integer(limit) and is_integer(offset) do
+          `{:ok, struct}`
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, %{id: 1})`
+
+          `{:ok, struct}`
+      """
+      def get(mod, id) when is_integer(id) or is_binary(id) do
+        @cont.get(mod, id) |> response(mod)
+      end
+
+      @doc """
+      Retrieves structure from DB
+
+      ## Takes in parameters:
+        - Using `id` records from the database
+          - `mod`:  Module
+          - `id`: Structure identifier in the database
+        - Search by a bunch of `keys: value` of a record in the database
+          - `mod`:  Module
+          - `opts`: Map or paramatras `keys: value` separated by commas
+
+      ## Returns:
+        - `{:ok, struct}`
+        - `{:error, error as a string}`
+
+      ## Examples:
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, 1)`
+
+          `{:ok, struct}`
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, id: 1)`
+
+          `{:ok, struct}`
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, %{id: 1})`
+
+          `{:ok, struct}`
+      """
+      def get(mod, opts) when is_list(opts) or is_map(opts) do
+        @cont.get_by(mod, opts_to_map(opts)) |> response(mod)
+      end
+
+      @doc """
+      Returns a list of structures from the database corresponding to the given Module
+
+      ## Takes in parameters:
+        - `mod`: Module
+
+      ## Returns:
+        - `{:ok, list of structures}`
+        - `{:ok, []}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.get_all(MyApp.MyModule)`
+
+        `{:ok, list of structures}`
+      """
+      def get_all(mod) do
+        {:ok, @cont.all(from(item in mod, select: item, order_by: item.id))}
+      end
+
+      @doc """
+      Returns a list of structures from the database corresponding to the given Module
+
+      ## Takes in parameters:
+        - `mod`:  Module
+        - `opts`: Map or paramatras `keys: value` separated by commas
+
+      ## Returns
+        - `{:ok, list of structures}`
+        - `{:ok, []}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, id: 1)`
+
+          `{:ok, list of structures}`
+        - `iex> MyApp.CRUD.add(MyApp.MyModule, %{id: 1})`
+
+          `{:ok, list of structures}`
+      """
+      def get_all(mod, opts) when is_list(opts) or is_map(opts) do
+        {:ok, @cont.all(from(i in mod, select: i, order_by: i.id) |> filter(opts))}
+      end
+
+      @doc """
+      Returns the specified number of items for the module
+
+      ## Takes in parameters:
+        - `mod`:   Module
+        - `limit`: Number of items to display
+
+      ## Returns
+        - `{:ok, list of structures}`
+        - `{:ok, []}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.get_few(MyApp.MyModule, 200)`
+
+          `{:ok, list of structures}`
+      """
+      def get_few(mod, limit) when is_integer(limit) do
+        {:ok, @cont.all(from(i in mod, select: i, order_by: i.id, limit: ^limit))}
+      end
+
+      @doc """
+      Returns the specified number of items for a module starting from a specific item
+
+      ## Takes in parameters:
+        - `mod`:   Module
+        - `limit`: Number of items to display
+        - `offset`: First element number
+
+      ## Returns
+        - `{:ok, list of structures}`
+        - `{:ok, []}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.get_few(MyApp.MyModule, 200, 50)`
+
+          `{:ok, list of structures}`
+      """
+      def get_few(mod, limit, offset) when is_integer(limit) and is_integer(offset) do
         query = from(i in mod, select: i, order_by: i.id, limit: ^limit, offset: ^offset)
         {:ok, @cont.all(query)}
       end
 
-      def get_all(mod, limit, opts) when is_list(opts) or is_map(opts) do
+      @doc """
+      Returns the specified number of items for a module starting from a specific item
+
+      ## Takes in parameters:
+        - `mod`:   Module
+        - `limit`: Number of items to display
+        - `opts`: Map or paramatras `keys: value` separated by commas
+
+      ## Returns
+        - `{:ok, list of structures}`
+        - `{:ok, []}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.get_few(MyApp.MyModule, 200, key: value)`
+
+          `{:ok, list of structures}`
+        - `iex> MyApp.CRUD.get_few(MyApp.MyModule, 200, %{key: value})`
+
+          `{:ok, list of structures}`
+      """
+      def get_few(mod, limit, opts) when is_list(opts) or is_map(opts) do
         query = from(i in mod, select: i, order_by: i.id, limit: ^limit)
         {:ok, @cont.all(query |> filter(opts))}
       end
 
-      def get_all(mod, limit, offset, opts) when is_list(opts) or is_map(opts) do
+      @doc """
+      Returns the specified number of items for a module starting from a specific item
+
+      ## Takes in parameters:
+        - `mod`:   Module
+        - `limit`: Number of items to display
+        - `offset`: First element number
+        - `opts`: Map or paramatras `keys: value` separated by commas
+
+      ## Returns
+        - `{:ok, list of structures}`
+        - `{:ok, []}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.get_few(MyApp.MyModule, 200, 50, key: value)`
+
+          `{:ok, list of structures}`
+        - `iex> MyApp.CRUD.get_few(MyApp.MyModule, 200, 50, %{key: value})`
+
+          `{:ok, list of structures}`
+      """
+      def get_few(mod, limit, offset, opts) when is_list(opts) or is_map(opts) do
         query = from(i in mod, select: i, limit: ^limit)
         {:ok, @cont.all(query |> filter(opts) |> offset(^offset))}
       end
 
+      @doc """
+      Makes changes to the structure from the database
+
+      ## Takes in parameters:
+        - `item`: Structure for change
+        - `opts`: Map or paramatras `keys: value` separated by commas
+
+      ## Returns
+        - `{:ok, list of structures}`
+        - `{:ok, []}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.update(item, key: value)`
+
+          `{:ok, list of structures}`
+        - `iex> MyApp.CRUD.update(item, %{key: value})`
+
+          `{:ok, list of structures}`
+      """
       def update(item, opts) when is_struct(item),
         do: item.__struct__.changeset(item, opts_to_map(opts)) |> @cont.update()
 
+      @doc """
+      Makes changes to the structure from the database
+
+      ## Takes in parameters:
+        - `mod`: Module
+        - `id`: Structure identifier in the database
+        - `opts`: Map or paramatras `keys: value` separated by commas
+
+      ## Returns
+        - `{:ok, structure}`
+        - `{:ok, error as a string or list of errors}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.update(MyApp.MyModule, 1, key: value)`
+
+          `{:ok, structure}`
+        - `iex> MyApp.CRUD.update(MyApp.MyModule, 1, %{key: value})`
+
+          `{:ok, structure}`
+      """
       def update(mod, id, opts) when is_integer(id) or is_binary(id),
         do: get(mod, id) |> update_response(opts)
 
+      @doc """
+      Makes changes to the structure from the database
+
+      ## Takes in parameters:
+        - `mod`: Module
+        - `key`: Field from structure
+        - `val`: Field value
+        - `opts`: Map or paramatras `keys: value` separated by commas
+
+      ## Returns
+        - `{:ok, structure}`
+        - `{:error, error as a string or list of errors}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.update(MyApp.MyModule, key, 1, key: value)`
+
+          `{:ok, structure}`
+        - `iex> MyApp.CRUD.update(MyApp.MyModule, key, 1, %{key: value})`
+
+          `{:ok, structure}`
+      """
       def update(mod, key, val, opts), do: get(mod, [{key, val}]) |> update_response(opts)
 
+      @doc """
+      Removes the specified structure from the database
+
+      ## Takes in parameters:
+        - `item`: Structure
+
+      ## Returns
+        - `{:ok, structure}`
+        - `{:error, error as a string or list of errors}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.delete(structure)`
+
+          `{:ok, structure}`
+      """
       def delete(item) when is_struct(item) do
         try do
           @cont.delete(item)
@@ -65,8 +325,43 @@ defmodule CRUD do
         end
       end
 
+      @doc """
+      Removes the specified structure from the database
+
+      ## Takes in parameters:
+        - `mod`: Module
+        - `id`: Structure identifier in the database
+
+      ## Returns
+        - `{:ok, structure}`
+        - `{:error, error as a string or list of errors}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.delete(MyApp.MyModule, 1)`
+
+          `{:ok, structure}`
+      """
       def delete(mod, id), do: get(mod, id) |> delete_response()
 
+      @doc """
+      Returns a list of structures in which the values of the specified fields partially or completely correspond to the entered text
+
+      ## Takes in parameters:
+        - `mod`: Module
+        - `id`: Structure identifier in the database
+
+      ## Returns
+        - `{:ok, list of structures}`
+        - `{:ok, []}`
+
+      ## Examples
+        - `iex> MyApp.CRUD.find(MyApp.MyModule, key: "sample")`
+
+          `{:ok, list of structures}`
+        - `iex> MyApp.CRUD.find(MyApp.MyModule, %{key: "sample"})`
+
+          `{:ok, list of structures}`
+      """
       def find(mod, opts),
         do: from(item in mod, select: item) |> find(opts_to_map(opts), Enum.count(opts), 0)
 
@@ -120,196 +415,4 @@ defmodule CRUD do
       defp error_str(key, msg), do: "#{Atom.to_string(key) |> String.capitalize()}: #{msg}"
     end
   end
-
-  @doc """
-  Returns the current Repo
-  """
-  @callback context() :: Module.t()
-
-  @doc """
-  ##### Adds a new entity to the database #####
-  Takes in parameters:
-    - CRUD.add/2:
-      - `mod`:  Module
-      - `opts`: Map or paramatras key: value separated by commas
-
-  Returns `{:ok, struct}` or `{:error, error as a string or list of errors}`
-
-  ## Examples
-      iex> MyApp.CRUD.add(MyApp.MyModule, %{key1: value1, key2: value2})
-      or
-      iex> MyApp.CRUD.add(MyApp.MyModule, key1: value1, key2: value)
-  """
-  @callback add(mod :: Module.t(), opts :: List.t() | Map.t()) ::
-              {:ok, Ecto.Schema.t()} | {:error, List.t()} | {:error, String.t()}
-
-  @doc """
-  ##### Retrieves structure from DB #####
-  Takes in parameters:
-    - CRUD.get/2:
-      - `mod`:  Module
-      - `id`:   Structure identifier in the database
-    - CRUD.get/2:
-      - `mod`:  Module
-      - `opts`: Map or paramatras key: value separated by commas
-
-  Returns `{:ok, struct}` or `{:error, error as a string}`
-
-  ## Examples
-      iex> MyApp.CRUD.get(MyApp.MyModule, 1)
-      or
-      iex> MyApp.CRUD.add(MyApp.MyModule, "8892da9e-9cb5-49dd-922c-7371083cdd85")
-      or
-      iex> MyApp.CRUD.add(MyApp.MyModule, id: 1)
-      or
-      iex> MyApp.CRUD.add(MyApp.MyModule, %{id: 1})
-  """
-  @callback get(mod :: Module.t(), id :: String.t() | Integer.t()) ::
-              {:ok, Ecto.Schema.t()} | {:error, List.t()} | {:error, String.t()}
-
-  @callback get(mod :: Module.t(), opts :: List.t() | Map.t()) ::
-              {:ok, Ecto.Schema.t()} | {:error, List.t()} | {:error, String.t()}
-
-  @doc """
-  ##### Gets a list of structures from the database #####
-  Takes in parameters:
-    - CRUD.get_all/1:
-      - `mod`:    Module
-    - CRUD.get_all/2:
-      - `mod`:    Module
-      - `limit`:  Number of items to display
-    - CRUD.get_all/2:
-      - `mod`:    Module
-      - `opts`:   Map or paramatras key: value separated by commas
-    - CRUD.get_all/3:
-      - `mod`:    Module
-      - `limit`:  Number of items to display
-      - `offset`: Number of elements at the beginning of the list to skip
-    - CRUD.get_all/3:
-      - `mod`:    Module
-      - `limit`:  Number of items to display
-      - `opts`:   Map or paramatras key: value separated by commas
-    - CRUD.get_all/4:
-      - `mod`:    Module
-      - `limit`:  Number of items to display
-      - `offset`: Number of elements at the beginning of the list to skip
-      - `opts`:   Map or paramatras key: value separated by commas
-
-  Returns `{:ok, list}`
-
-  ## Examples
-      iex> MyApp.CRUD.get_all(MyApp.MyModule)
-      or
-      iex> MyApp.CRUD.get_all(MyApp.MyModule, 200)
-      or
-      iex> MyApp.CRUD.get_all(MyApp.MyModule, status: 1)
-      or
-      iex> MyApp.CRUD.get_all(MyApp.MyModule, %{status: 1})
-      or
-      iex> MyApp.CRUD.get_all(MyApp.MyModule, 200, 50)
-      or
-      iex> MyApp.CRUD.get_all(MyApp.MyModule, 200, status: 1)
-      or
-      iex> MyApp.CRUD.get_all(MyApp.MyModule, 200, %{status: 1})
-      or
-      iex> MyApp.CRUD.get_all(MyApp.MyModule, 200, 50, status: 1)
-      or
-      iex> MyApp.CRUD.get_all(MyApp.MyModule, 200, 50, %{status: 1})
-  """
-  @callback get_all(mod :: Module.t()) :: {:ok, List.t()}
-  @callback get_all(mod :: Module.t(), opts :: List.t() | Map.t()) :: {:ok, List.t()}
-  @callback get_all(mod :: Module.t(), limit :: Integer.t()) :: {:ok, List.t()}
-  @callback get_all(mod :: Module.t(), limit :: Integer.t(), offset :: Integer.t()) ::
-              {:ok, List.t()}
-  @callback get_all(mod :: Module.t(), limit :: Integer.t(), opts :: List.t() | Map.t()) ::
-              {:ok, List.t()}
-  @callback get_all(
-              mod :: Module.t(),
-              limit :: Integer.t(),
-              offset :: Integer.t(),
-              opts :: List.t() | Map.t()
-            ) ::
-              {:ok, List.t()}
-
-  @doc """
-  ##### Changes the structure in the database #####
-  Takes in parameters:
-    - CRUD.update/2:
-      - `item`: struct
-      - `opts`: Map or paramatras key: value separated by commas
-    - CRUD.update/3:
-      - `mod`:  Module
-      - `id`:   Structure identifier in the database
-      - `opts`: Map or paramatras key: value separated by commas
-    - CRUD.update/4:
-      - `mod`:  Module
-      - `key`:  Name of one of the fields in the structure
-      - `val`:  Field value
-      - `opts`: Map or paramatras key: value separated by commas
-
-  Returns `{:ok, struct}` or `{:error, error as a string or list of errors}`
-
-  ## Examples
-      iex> MyApp.CRUD.update(struct, %{key1: value1, key2: value2})
-      or
-      iex> MyApp.CRUD.update(struct, key1: value1, key2: value)
-      or
-      iex> MyApp.CRUD.update(MyApp.MyModule, 5, %{key1: value1, key2: value})
-      or
-      iex> MyApp.CRUD.update(MyApp.MyModule, 5, key1: value1, key2: value)
-      or
-      iex> MyApp.CRUD.update(MyApp.MyModule, :id, 5, %{key1: value1, key2: value})
-      or
-      iex> MyApp.CRUD.update(MyApp.MyModule, :id, 5, key1: value1, key2: value)
-  """
-  @callback update(item :: Ecto.Schema.t(), opts :: List.t() | Map.t()) ::
-              {:ok, Ecto.Schema.t()} | {:error, List.t()} | {:error, String.t()}
-
-  @callback update(mod :: Module.t(), id :: Integer.t() | String.t(), opts :: List.t() | Map.t()) ::
-              {:ok, Ecto.Schema.t()} | {:error, List.t()} | {:error, String.t()}
-
-  @callback update(
-              mod :: Module.t(),
-              key :: Atom.t(),
-              val :: Integer.t() | String.t(),
-              opts :: List.t() | Map.t()
-            ) ::
-              {:ok, Ecto.Schema.t()} | {:error, List.t()} | {:error, String.t()}
-
-  @doc """
-  ##### Removes a structure from the database #####
-  Takes in parameters:
-    - CRUD.delete/1:
-      - `item`: struct
-    - CRUD.delete/2:
-      - `mod`:  Module
-      - `id`:   Structure identifier in the database
-
-  Returns `{:ok, struct}` or `{:error, error as a string or list of errors}`
-
-  ## Examples
-      iex> MyApp.CRUD.delete(struct)
-      or
-      iex> MyApp.CRUD.delete(MyApp.MyModule, 1)
-  """
-  @callback delete(item :: Ecto.Schema.t()) ::
-              {:ok, Ecto.Schema.t()} | {:error, List.t()} | {:error, String.t()}
-  @callback delete(mod :: Module.t(), id :: Integer.t() | String.t()) ::
-              {:ok, Ecto.Schema.t()} | {:error, List.t()} | {:error, String.t()}
-
-  @doc """
-  ##### Finds a list of elements from the database by matching part of a string to one of the item's fields in the pattern #####
-  Takes in parameters:
-    - CRUD.find/2:
-      - `mod`: Module
-      - `opts`: Map or paramatras key: value separated by commas
-
-  Returns `{:ok, list of structures}`
-
-  ## Examples
-      iex> MyApp.CRUD.find(MyApp.MyModule, %{key: "sample"})
-      or
-      iex> MyApp.CRUD.find(MyApp.MyModule, key: "sample")
-  """
-  @callback find(mod :: Module.t(), opts :: List.t() | Map.t()) :: {:ok, List.t()}
 end

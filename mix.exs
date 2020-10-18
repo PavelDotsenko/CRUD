@@ -4,7 +4,7 @@ defmodule CRUD.MixProject do
   def project do
     [
       app: :crud,
-      version: "1.0.1",
+      version: "1.0.2",
       elixir: "~> 1.6",
       deps: deps(),
       description: "A set of tools for simplified database access",
