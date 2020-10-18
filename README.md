@@ -44,15 +44,18 @@ iex> {:ok, struct} = MyApp.CRUD.get(MyApp.MyModule, id: 1)
 ```Elixir
 iex> {:ok, list_of_structures} = MyApp.CRUD.get_all(MyApp.MyModule)
 or
-iex> {:ok, list_of_structures} = MyApp.CRUD.get_all(MyApp.MyModule, 200)
-or
 iex> {:ok, list_of_structures} = MyApp.CRUD.get_all(MyApp.MyModule, key: value)
+```
+
+### Get few
+```Elixir
+iex> {:ok, list_of_structures} = MyApp.CRUD.get_few(MyApp.MyModule, 200)
 or
-iex> {:ok, list_of_structures} = MyApp.CRUD.get_all(MyApp.MyModule, 200, 50)
+iex> {:ok, list_of_structures} = MyApp.CRUD.get_few(MyApp.MyModule, 200, 50)
 or
-iex> {:ok, list_of_structures} = MyApp.CRUD.get_all(MyApp.MyModule, 200, status: 1)
+iex> {:ok, list_of_structures} = MyApp.CRUD.get_few(MyApp.MyModule, 200, status: 1)
 or
-iex> {:ok, list_of_structures} = MyApp.CRUD.get_all(MyApp.MyModule, 200, 50, status: 1)
+iex> {:ok, list_of_structures} = MyApp.CRUD.get_few(MyApp.MyModule, 200, 50, status: 1)
 ```
 
 ### Changes the structure:
