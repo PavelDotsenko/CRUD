@@ -3,7 +3,7 @@ defmodule CRUD do
   A module for easy access to the database.
   """
 
-  @moduledoc since: "1.0.2"
+  @moduledoc since: "1.0.3"
 
   use Ecto.Schema
 
