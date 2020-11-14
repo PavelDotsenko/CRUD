@@ -2,7 +2,7 @@
 
 A module for easy access to the database.
 
-### Latest release v1.0.4 on 2020-11-14
+### Latest release v1.0.5 on 2020-11-14
 
 # How to add to the project
 Add this to your dependencies in your mix.exs:
@@ -10,7 +10,7 @@ Add this to your dependencies in your mix.exs:
 defp deps do
     [
         # ... whatever else
-        { :crud, ">=1.0.4" }, # <-- and this
+        { :crud, ">=1.0.5" }, # <-- and this
     ]
 end
 ```
