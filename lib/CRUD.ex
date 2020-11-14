@@ -3,7 +3,7 @@ defmodule CRUD do
   A module for easy access to the database.
   """
 
-  @moduledoc since: "1.0.3"
+  @moduledoc since: "1.0.4"
 
   use Ecto.Schema
 
@@ -362,34 +362,6 @@ defmodule CRUD do
       """
       def find(mod, opts),
         do: from(item in mod, select: item) |> find(opts_to_map(opts), Enum.count(opts), 0)
-
-      @doc """
-      Checks if the given structure exists in the database
-
-      ## Takes in parameters:
-        - Using `id` records from the database
-          - `mod`:  Module
-          - `id`: Structure identifier in the database
-        - Search by a bunch of `keys: value` of a record in the database
-          - `mod`:  Module
-          - `opts`: Map or paramatras `keys: value` separated by commas
-
-      ## Returns
-        - true
-        - false
-
-      ## Examples
-        - `iex> MyApp.CRUD.exist?(MyApp.MyModule, 1)`
-
-          `true`
-        - `iex> MyApp.CRUD.exist?(MyApp.MyModule, key: 1)`
-
-          `{:ok, list of structures}`
-        - `iex> MyApp.CRUD.exist?(MyApp.MyModule, %{key: 1})`
-
-          `{:ok, list of structures}`
-      """
-      def exist?(mod, id), do: from(i in mod, where: i.id == id, select: i) |> @cont.exists?()
 
       @doc """
       Checks if the given structure exists in the database
